@@ -25,4 +25,5 @@ if __name__ == "__main__":
     if args.dfa:
         print("DFA:\n", d, sep='', end='\n\n')
 
+
     print("INTERSECTION:", *find_intersection(c, d), sep='\n')

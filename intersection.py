@@ -1,6 +1,7 @@
 from cfg.cfg import CFG
 from cfg.rule import Rule, Term, Nterm, Epsilon
 from dfa.dfa import DFA, Edge
+from pprint import pprint
 
 
 class ScalObj:
@@ -62,7 +63,7 @@ def find_intersection(cfg: CFG, dfa: DFA):
                 break
         else:
             terminal_only_nonterms.add(nont)
-    term_rules = rules.copy()
+    term_rules = intersection.copy()
 
     # По каждому правилу A -> A1..An из cfg строим правила
     # <p,A,q> -> <p,A,q1><q1,A,q> для всех возможных p,q,q1
@@ -73,7 +74,6 @@ def find_intersection(cfg: CFG, dfa: DFA):
                     s1 = ScalObj(p, rule.left, q)
                     s2 = ScalObj(p, rule.rights[0], q1)
                     s3 = ScalObj(q1, rule.rights[1], q)
-
                     if not rule_legit([s1, s2, s3], terminal_only_nonterms, term_rules):
                         continue
 
@@ -82,7 +82,6 @@ def find_intersection(cfg: CFG, dfa: DFA):
 
     # тут почистим
     start = ScalObj(dfa.start_state, Nterm("[S]"), dfa.final_state)
-    # вилкой
     result = find_result(intersection, start)
     return result
 
@@ -97,8 +96,9 @@ def find_result(intersection, start):
         for rule in intersection:
             if rule.left in final_scals:
                 flag = True
-                final_scals.add(rule.right[0])
-                final_scals.add(rule.right[1])
+                if len(rule.right) == 2:
+                    final_scals.add(rule.right[0])
+                    final_scals.add(rule.right[1])
                 r = rule
                 break
         if r:
@@ -108,13 +108,12 @@ def find_result(intersection, start):
 
 
 def rule_legit(objs: list[ScalObj], terminal_only_nonterms, term_rules):
-    if objs[0] == objs[1] == objs[2]:
-        return False
     for obj in objs:
         if obj.Nont not in terminal_only_nonterms:
             continue
         for rule in term_rules:
-            if obj == rule.left:
-                continue
-        return False
+            if obj.Nont == rule.left.Nont:
+                break
+        else:
+            return False
     return True
