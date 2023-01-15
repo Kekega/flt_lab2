@@ -24,6 +24,6 @@ if __name__ == "__main__":
         print("CFG:\n", c, sep='', end='\n\n')
 
     if args.dfa:
-        print("DFA", d, sep='', end='\n\n')
+        print("DFA:\n", d, sep='', end='\n\n')
 
     pprint(find_intersection(c, d))
