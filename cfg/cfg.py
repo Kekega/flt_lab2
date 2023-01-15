@@ -1,13 +1,8 @@
 from copy import deepcopy
 import networkx as nx
-import uuid
 
 from cfg.rule import Rule, Term, Nterm, Epsilon
 import uuid
-
-
-class Decision(Exception):
-    pass
 
 class CFG():
     def __init__(self, rules_set):
@@ -15,13 +10,8 @@ class CFG():
         self.terms = self.get_terms(rules_set)
         self.nterms = self.get_nterms(rules_set)
 
-        # assert all(map(
-        #     lambda x: any(map(lambda y: y.left == x, rules_set)),
-        #     self.nterms
-        # ))
         self.start = Nterm('[S]')
         self.buid_dependency_graph()
-        # self.clean()
 
     def clean(self):
         # в грамматике не должно быть:

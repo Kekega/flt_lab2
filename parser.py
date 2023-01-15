@@ -26,7 +26,7 @@ def read_input(input_filename):
     c = a.parse_rules().toCNF()
     # получили cfg в нормальной форме Хомского
 
-    states = set()
+    states = {"[F0]"}
     edges = set()
 
     for rule in it:
@@ -42,7 +42,7 @@ def read_input(input_filename):
             t = t.strip()
             sym = t[0]
             t = t[1:]
-            st_to = t if t else st_from
+            st_to = t if t else "F0"
             states.add(st_to)
             e = Edge(st_from, st_to, sym)
             edges.add(e)
