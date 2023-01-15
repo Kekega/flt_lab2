@@ -14,6 +14,9 @@ class Edge:
         return "[" + ", ".join(l) + "]"
 
 class DFA:
+    start_state = "[S]"
+    final_state = "[F0]"
+
     def __init__(self, states: set[str], edges: set[Edge]):
         self.states = states
         self.edges = edges

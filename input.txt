@@ -4,5 +4,4 @@ Context-free grammar:
 [Ga] -> a
 [Gb] -> b
 Regular grammar:
-[S] -> a[S]|b[T]
-[T] -> b[T]|e
+[S] -> a[S]|b

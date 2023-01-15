@@ -42,7 +42,7 @@ def read_input(input_filename):
             t = t.strip()
             sym = t[0]
             t = t[1:]
-            st_to = t if t else "F0"
+            st_to = t if t else "[F0]"
             states.add(st_to)
             e = Edge(st_from, st_to, sym)
             edges.add(e)
