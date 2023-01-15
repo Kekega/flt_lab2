@@ -111,9 +111,11 @@ def rule_legit(objs: list[ScalObj], terminal_only_nonterms, term_rules):
     for obj in objs:
         if obj.Nont not in terminal_only_nonterms:
             continue
+        f = True
         for rule in term_rules:
-            if obj.Nont == rule.left.Nont:
+            if obj == rule.left:
+                f = False
                 break
-        else:
+        if f:
             return False
     return True
