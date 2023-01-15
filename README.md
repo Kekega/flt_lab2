@@ -1,7 +1,6 @@
 ### Пересечение КС- и праволинейной грамматики
 
 ```
-git clone https://github.com/Kekega/flt_lab2.git
 python main.py 
 ```
 
