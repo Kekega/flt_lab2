@@ -1,5 +1,4 @@
 from copy import deepcopy
-import networkx as nx
 
 from cfg.rule import Rule, Term, Nterm, Epsilon
 import uuid

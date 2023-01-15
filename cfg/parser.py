@@ -74,8 +74,6 @@ class CFG_Parser():
         for rule_list in rules_raw:
             assert rule_list[1] == '->'
             new_rule = Rule(rule_list[0], rule_list[2:])
-            # print('NEW RULE:', new_rule)
             rules_set.add(new_rule)
-            # print(len(rules_set))
 
         return CFG(rules_set)
