@@ -2,6 +2,7 @@ from cfg.cfg import CFG
 from cfg.rule import Rule, Term, Nterm, Epsilon
 from dfa.dfa import DFA, Edge
 
+
 class ScalObj:
     def __init__(self, p, Nont, q):
         self.p = p
@@ -21,6 +22,7 @@ class ScalObj:
     def __eq__(self, o):
         return isinstance(o, ScalObj) and self.p == o.p and self.Nont == o.Nont and self.q == o.q
 
+
 class IntersectionRule:
     def __init__(self, left: ScalObj, right: list[ScalObj | str]):
         self.left = left
@@ -28,11 +30,10 @@ class IntersectionRule:
 
     def __str__(self):
         r = "".join(map(str, self.right))
-        return str(self.left) + " -> " + r #str(self.right)
+        return str(self.left) + " -> " + r
 
     def __repr__(self):
         return self.__str__()
-
 
 
 def find_intersection(cfg: CFG, dfa: DFA):
@@ -85,6 +86,7 @@ def find_intersection(cfg: CFG, dfa: DFA):
     result = find_result(intersection, start)
     return result
 
+
 def find_result(intersection, start):
     final_scals = {start}
     final_intersection = set()
@@ -103,6 +105,7 @@ def find_result(intersection, start):
             final_intersection.add(r)
             intersection.remove(r)
     return final_intersection
+
 
 def rule_legit(objs: list[ScalObj], terminal_only_nonterms, term_rules):
     if objs[0] == objs[1] == objs[2]:

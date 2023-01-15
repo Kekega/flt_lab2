@@ -12,30 +12,6 @@ class CFG():
         self.start = Nterm('[S]')
         self.buid_dependency_graph()
 
-    def clean(self):
-        # в грамматике не должно быть:
-        # 1. недостижимых нетерминалов - unreachable
-        # 2. ни во что нераскрывающихся нетерминалов - nonending
-        # 3. переходов нетерминал -> нетерминал, которые ничего не выкидывают влево и вправо - chain rules
-        # 4. нетерминалов, которые раскрываются только в один конкретный символ
-        # 5. правил, правые части которых не epsilon, но там есть "_"
-        # 6. правил, правые части которых являются epsilon, но состоят более, чем из одной "_"
-        #
-        # 3. remove_chain_rules()
-        # 2. remove_nongenerating_rules()
-        # 4. remove_nonterms_with_single_term_transition()
-        # 5. remove_trivial_nterms()
-        # 6. remove_trivial_nterms()
-        # 1. remove_unreachable_symbols()
-        return self.remove_chain_rules() \
-            .remove_unreachable_symbols() \
-            .remove_nongenerating_rules() \
-            .remove_unreachable_symbols() \
-            .remove_nonterms_with_single_term_transition() \
-            .remove_unreachable_symbols() \
-            .remove_trivial_nterms() \
-            .remove_unreachable_symbols()
-
     # извлекает список всех термов из множества правил КСГ
     # используется в конструкторе
     # не изменяет объект
@@ -133,25 +109,11 @@ class CFG():
                 break
 
         new_rules = set(filter(
-            lambda x: x.left in self.reachable, #???
+            lambda x: x.left in self.reachable,
             self.rules
         ))
 
         return CFG(new_rules)
-
-    # Создает новый объект, в правилах которого удалены нетермы
-    # # которые, которые раскрываются только в eps
-    # def remove_nullable_symbols(self):
-    #     new_cfg = deepcopy(self)
-    #     new_cfg._find_nullable_symbols()
-    #     new_cfg.rules = set(
-    #         filter(lambda x: x.left not in new_cfg.Ne, new_cfg.rules))
-    #     new_cfg.rules = set(map(
-    #         lambda x: Rule(x.left, list(
-    #             map(lambda y: y if y not in new_cfg.Ne else Epsilon(), x.rights))),
-    #         new_cfg.rules
-    #     ))
-    #     return new_cfg
 
     # Удаление eps-правил из грамматики
     # Создает новый объект
@@ -291,76 +253,6 @@ class CFG():
     def remove_useless_rules(self):
         return self.remove_nongenerating_rules().remove_unreachable_symbols()
 
-    def remove_nonterms_with_single_term_transition(self):
-        useless_nterm = {}
-        for nt in self.nterms:
-            useless_nterm[nt.name] = None
-        for rule in self.rules:
-            left = rule.left
-            rights = rule.rights
-            if len(rights) == 1 and isinstance(rights[0], Term) and left.name in useless_nterm.keys() and useless_nterm[
-                left.name] == None:
-                useless_nterm[left.name] = rights[0].symbol
-                continue
-            useless_nterm.pop(left.name, None)
-
-        new_rules = set()
-        for rule in self.rules:
-            left = rule.left
-            rights = rule.rights
-            new_rights = []
-            for r in rights:
-                if isinstance(r, Nterm) and r.name in useless_nterm.keys():
-                    new_rights.append(Term(useless_nterm[r.name]))
-                    continue
-                new_rights.append(r)
-            new_rules.add(Rule(left, new_rights))
-        return CFG(new_rules)
-
-    def remove_nonterms_with_term_transition(self):
-        useless_nterm = {}
-        unused_nterms = set()
-        for nt in self.nterms:
-            useless_nterm[nt.name] = None
-            unused_nterms.add(nt.name)
-
-        k = 0
-        rules = deepcopy(self.rules)
-        while True:
-            new_rules = set()
-            n = k
-            for rule in rules:
-                left = rule.left
-                rights = rule.rights
-                if all(map(lambda x: isinstance(x, Term), rights)) and left.name in useless_nterm.keys() and \
-                        useless_nterm[left.name] == None:
-                    useless_nterm[left.name] = rights
-                    unused_nterms.remove(left.name)
-                    continue
-                useless_nterm.pop(left.name, None)
-
-            for rule in rules:
-                left = rule.left
-                rights = rule.rights
-                new_rights = []
-                for r in rights:
-                    if isinstance(r, Nterm) and r.name in useless_nterm.keys():
-                        new_rights.extend(useless_nterm[r.name])
-                        n += 1
-                        continue
-                    new_rights.append(r)
-                new_rules.add(Rule(left, new_rights))
-            if n == k:
-                break
-            rules = deepcopy(new_rules)
-            k = n
-            for nt in self.nterms:
-                if nt.name in unused_nterms:
-                    useless_nterm[nt.name] = None
-                else:
-                    useless_nterm.pop(nt.name, None)
-        return CFG(new_rules)
-
     def several_nonterm_removal(self):
         def create_unique_str():
             return f"[U{uuid.uuid4().hex[:2].upper()}]"
@@ -412,56 +304,6 @@ class CFG():
             new_nterm = Nterm("[U" + uuid.uuid4().hex[:3].upper() + "]")
         new_rules.add(Rule(current_nterm, [rule.rights[-2], rule.rights[-1]]))
         return new_rules
-
-    def remove_trivial_nterms(self):
-        def clean_rules(rules):
-            new_rules = set()
-
-            for rule in rules:
-                filtered_right_part = list(
-                    filter(lambda x: not isinstance(x, Epsilon), rule.rights))
-                if filtered_right_part:
-                    rule.rights = filtered_right_part
-                else:
-                    rule.rights = [Epsilon()]
-                new_rules.add(rule)
-            return new_rules
-
-        rules = clean_rules(self.rules)
-        nterms = self.nterms
-
-        while True:
-            nterms_num = len(nterms)
-
-            # на данный момент в каждой правой части стоит не более одного Epsilon()
-
-            for nterm in nterms:
-                # найдем все способы его переписывания
-                nterms_rules = list(filter(lambda x: x.left == nterm, rules))
-                # если он не может переписаться, то это вообще не наш случай
-                if not nterms_rules:
-                    continue
-                # если все способы переписывания тривиальны
-                if all(map(lambda x: x.rights == [Epsilon()], nterms_rules)):
-
-                    # обновим правила
-                    rewrittent_rules = set()
-                    for rule in rules:
-                        rule.rights = list(
-                            map(lambda x: x if x != nterm else Epsilon(), rule.rights))
-                        rewrittent_rules.add(rule)
-                    rules = rewrittent_rules
-
-                    nterms.remove(nterm)
-                    rules = list(filter(lambda x: nterm != x.left, rules))
-                    break
-
-            rules = clean_rules(rules)
-
-            if len(nterms) == nterms_num:
-                break
-
-        return CFG(rules)
 
     # Возвращает новый объект, в котором удалены nonegenerating правила
     # (nongenerating - непораждающие. Для них в правой части всегда стоит хотя бы один нетерминал)
