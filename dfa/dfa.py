@@ -28,7 +28,7 @@ class DFA:
         self.edges.add(e)
 
     def __repr__(self):
-        return str(self.states) + "\n" + str(self.edges)
+        return "States:\n" + str(self.states) + "\n" + "Edges:\n" + str(self.edges)
 
 
 
