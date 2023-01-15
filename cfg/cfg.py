@@ -9,22 +9,6 @@ import uuid
 class Decision(Exception):
     pass
 
-
-class Mutually_Recursive_Set():
-    # https://sites.cs.ucsb.edu/~omer/DOWNLOADABLE/cfg-reg09.pdf
-    def __init__(self, members):
-        self.members = set(members)
-
-    def add_members(self, members):
-        self.members.update(members)
-
-    def can_be_added(self, members):
-        return self.members & members
-
-    def __repr__(self):
-        return str(self.members)
-
-
 class CFG():
     def __init__(self, rules_set):
         self.rules = rules_set
@@ -73,8 +57,6 @@ class CFG():
             for tnt in rule_list:
                 if isinstance(tnt, Term):
                     terms_set.add(tnt)
-        # for t in terms_set:
-        #     # print()(t)
         return terms_set
 
     # извлекает список всех гетермов из множества правил КСГ
@@ -87,8 +69,6 @@ class CFG():
             for tnt in rule_list:
                 if isinstance(tnt, Nterm):
                     nterms_set.add(tnt)
-        # for t in nterms_set:
-        #     # print()(t)
         return nterms_set
 
     def __repr__(self):
@@ -320,8 +300,6 @@ class CFG():
 
     # Возвращает новый объект без бесполезных правил
     def remove_useless_rules(self):
-        print("IN REMOVE USELESS")
-        print(self)
         return self.remove_nongenerating_rules().remove_unreachable_symbols()
 
     def remove_nonterms_with_single_term_transition(self):
@@ -348,7 +326,6 @@ class CFG():
                     continue
                 new_rights.append(r)
             new_rules.add(Rule(left, new_rights))
-        # print()(useless_nterm)
         return CFG(new_rules)
 
     def remove_nonterms_with_term_transition(self):
@@ -384,7 +361,6 @@ class CFG():
                         continue
                     new_rights.append(r)
                 new_rules.add(Rule(left, new_rights))
-            print(n)
             if n == k:
                 break
             rules = deepcopy(new_rules)
@@ -394,7 +370,6 @@ class CFG():
                     useless_nterm[nt.name] = None
                 else:
                     useless_nterm.pop(nt.name, None)
-        # print()(useless_nterm)
         return CFG(new_rules)
 
     def several_nonterm_removal(self):
@@ -464,7 +439,6 @@ class CFG():
             return new_rules
 
         rules = clean_rules(self.rules)
-        # print()('F CLEANED RULES', rules)
         nterms = self.nterms
 
         while True:
@@ -480,7 +454,6 @@ class CFG():
                     continue
                 # если все способы переписывания тривиальны
                 if all(map(lambda x: x.rights == [Epsilon()], nterms_rules)):
-                    # print()('TRIVIAL FOUND', nterm, nterms_rules)
 
                     # обновим правила
                     rewrittent_rules = set()
@@ -488,7 +461,6 @@ class CFG():
                         rule.rights = list(
                             map(lambda x: x if x != nterm else Epsilon(), rule.rights))
                         rewrittent_rules.add(rule)
-                        # print()('FILTERED RULE', rule)
                     rules = rewrittent_rules
 
                     nterms.remove(nterm)
@@ -496,7 +468,6 @@ class CFG():
                     break
 
             rules = clean_rules(rules)
-            # print()('CLEANED RULES', rules)
 
             if len(nterms) == nterms_num:
                 break
@@ -535,247 +506,3 @@ class CFG():
                 continue
             new_rules.append(rule)
         return CFG(new_rules)
-
-    # def remove_nongenerating_rules(self):
-    #     generating_nterms = set()
-    #     # для начала, наберем все нетерминалы, которые явно могут завершиться (раскрыться только в буквы)
-    #     for rule in self.rules:
-    #         if all(map(lambda x: isinstance(x, Term),  rule.rights)):
-    #             generating_nterms.add(rule.left.name)
-    #     # print()('THEY ARE GENERATING', generating_nterms)
-    #     # теперь будем набирать нетерминалы, которые способны переписаться в комбинацию терминалов и завершающихся терминалов
-    #     while True:
-    #         # print()(generating_nterms)
-    #         # фиксируем количество до нового набора
-    #         upow = len(generating_nterms)
-
-    #         # снова бегаем по всем правилам
-    #         for rule in self.rules:
-    #             flag = True
-    #             # если в правой части только нетерминалы, или завершающиеся
-    #             if all(map(lambda x: isinstance(x, Term) or x in generating_nterms, rule.rights)):
-    #                 generating_nterms.add(rule.left.name)
-
-    #         # фиксируем количество после нового набора
-    #         new_upow = len(generating_nterms)
-    #         # если ничего нового, то прекращаем
-    #         if upow == new_upow:
-    #             break
-
-    #     # теперь у нас есть множество завершающихся нетерминалов
-
-    #     # возможно, это можно было делать по ходу, но уже лень проверять
-    #     # назовем это "теоритической конструкцией"
-    #     new_rules = set(filter(
-    #         lambda x: x.left in generating_nterms and all(
-    #             map(lambda y: isinstance(y, Term) or y in generating_nterms, x.rights)),
-    #         self.rules
-    #     ))
-
-    #     return CFG(new_rules)
-
-    # def remove_unreachable_symbols(self):
-    #     # скажем, что стартовый символ достижим
-    #     self.reachable = set([self.start])
-    #     # про остальные пока не понятно
-    #     unallocated = self.nterms.difference(self.reachable)
-    #
-    #     while True:
-    #         upow = len(unallocated)
-    #
-    #         unallocated_copy = deepcopy(unallocated)
-    #         for nterm in unallocated_copy:
-    #             # если у трема есть родитель и этот родитель достижим, значит терм достижим
-    #             if nterm in self.parent_relations and set(self.parent_relations[nterm]) & self.reachable:
-    #                 # то пересаживаем его к достижимым
-    #                 self.reachable.add(nterm)
-    #                 unallocated.remove(nterm)
-    #
-    #         new_upow = len(unallocated)
-    #
-    #         if new_upow == upow:
-    #             break
-    #
-    #     new_rules = set(filter(
-    #         lambda x: x.left in self.reachable,
-    #         self.rules
-    #     ))
-    #
-    #     return CFG(new_rules)
-
-    # def build_mureses(self):
-    #     # # print()('-----------------')
-    #     # # print()('BUILDING muresES')
-    #     # # print()('-----------------')
-    #     g = nx.DiGraph(self.child_relations)
-    #     self.cycles = list(nx.simple_cycles(g))
-    #     cycles = list(map(set, self.cycles))
-    #     # for cycle in cycles:
-    #     # # print()('->cycle', cycle)
-    #
-    #     while True:
-    #         cycles = list(filter(bool, cycles))
-    #         cycles_copy = deepcopy(cycles)
-    #
-    #         flag_changed = False
-    #
-    #         for i, x in enumerate(cycles_copy):
-    #             for j, y in enumerate(cycles_copy):
-    #                 if x == y:
-    #                     continue
-    #                 if x & y:
-    #                     cycles[i] = x | y
-    #                     cycles[j] = set()
-    #                     flag_changed = True
-    #                     break
-    #
-    #         if not flag_changed:
-    #             break
-    #
-    #     self.mureses = []
-    #     for cycle in cycles:
-    #         self.mureses.append(Mutually_Recursive_Set(cycle))
-
-    # ЗАДАНИЕ 1
-    #
-    # def check_task_1(self):
-    #
-    #     self.build_mureses()
-    #     # # print()('muresES:')
-    #     # for murese in self.mureses:
-    #     # print()(murese.members)
-    #     # # print()('TRYING TO COLOR muresES')
-    #     return all(map(lambda x: self.check_murese_on_monocromatic_cycles(x), self.mureses))
-
-    # def check_murese_on_monocromatic_cycles(self, murese):
-    #     # # print()('-----------------')
-    #     # # print()('CHECKING muresE', murese.members)
-    #     # # print()('-----------------')
-    #     murese_rules = set(filter(lambda x: x.left in murese.members and set(
-    #         x.rights) & murese.members, self.rules))
-    #     members = list(murese.members)
-    #     M = [['0' for _ in range(len(members))] for _ in range(len(members))]
-    #
-    #     color_l, color_r = False, False
-    #     for i, _ in enumerate(M):
-    #         for j, _ in enumerate(M):
-    #             suitable_rules_for_edge = list(
-    #                 filter(lambda x: x.left == members[i] and members[j] in x.rights, murese_rules))
-    #             for sr in suitable_rules_for_edge:
-    #                 if sr.rights[0] == members[j]:
-    #                     color_l = True
-    #
-    #                 if len(sr.rights) > 1 and sr.rights[1] == members[j]:
-    #                     color_r = True
-    #                 if color_l and color_r:
-    #                     print('cycle is colored badly')
-    #                     return False
-    #     return True
-
-    # ЗАДАНИЕ 2
-
-    # def check_task_2(self):
-    #     # ограничения метода
-    #     # 1. считаем, что все правила в правой части имеют не более одного нетерминала
-    #     # 2. если в исходной грамматике 1. не соблюден, то до применения метода все незацикленные нетерминалы должны развернуться в терминалы
-    #     # 3. из любого muresa не более одного выхода
-    #     self.build_mureses()
-    #     try:
-    #         return self.check_linear_split(self.start)
-    #     except AssertionError:
-    #         return False
-    #     except Decision:
-    #         return True
-    #     return False
-
- #    def check_linear_split(self, first_cycled_nterm):
- #        # print()('----------------------------------')
- #        # print()('CHECKING LINEAR SPLIT OF', first_cycled_nterm)
- #
- #        # 1 МЫ НЕ В MURESE НАХОДИМСЯ СЕЙЧАС
- #        if not any(map(lambda x: first_cycled_nterm in x.members, self.mureses)):
- #            # правила, по которым можно отсюда уйти (и, кстати, в этом проходе в глубину мы сюда уже не вернемся)
- #            transit_rules = list(
- #                filter(lambda x: first_cycled_nterm == x.left, self.rules))
- #
- #            # предполагаем, что тут нет ветвлений грамматики
- #            assert len(transit_rules) == 1
- #            # выцепили правило перехода
- #            return self.transit_to_next_node(transit_rules[0])
- #
- #        # 2 МЫ В MURESE НАХОДИМСЯ СЕЙЧАС
- #        # print()('WE REACHED MURESE', first_cycled_nterm)
- #        cycles = list(filter(lambda x: first_cycled_nterm in x, self.cycles))
- #        # НАМ ОЧЕНЬ ХОЧЕЦА, ЧТОБЫ ЦИКЛ БЫЛ ОДИН ЭТОТ ЦИКЛ
- #        assert len(cycles) == 1
- #        the_cycle = cycles[0]
- #
- #        # сейчас пройдемся по этому циклу и посмотрим, что прилипнет к бортам нашего судна
- #        i = the_cycle.index(first_cycled_nterm)
- #        the_cycle = the_cycle[i:] + the_cycle[:i]
- #        the_cycle.append(the_cycle[0])
- #        left_tumor, right_tumor = [], []
- #        for i in range(len(the_cycle) - 1):
- #            # вот правила, по которым мы можем двигаться по циклу дальше
- #            rules = list(filter(
- #                lambda x: the_cycle[i] == x.left and the_cycle[i + 1] in x.rights, self.rules))
- #            # ну и тут тоже пока что надеемся
- #            # возможно, этот ассерт лишний вообще, но пусть будет
- #            assert len(rules) == 1
- #            rule = rules[0]
- #            pos_in_rule = rule.rights.index(the_cycle[i + 1])
- #            left_tumor, right_tumor = left_tumor + \
- #                                      rule.rights[:pos_in_rule], right_tumor + \
- #                                      rule.rights[pos_in_rule + 1:]
- #
- #        # print()('TUMORS', left_tumor, right_tumor)
- #
- #        # получим выходы из этого Mures'а
- #        escape_rules = list(filter(lambda x: x.left in the_cycle and all(
- #            map(lambda y: y not in the_cycle, x.rights)), self.rules))
- #        # print()('ESCAPE RULES', escape_rules)
- #
- #        assert len(escape_rules) == 1
- #        mid_string = self.transit_to_next_node(escape_rules[0])
- #        # print()('MID', mid_string)
- #
- #        # мы хотим, чтобы нарастали только буковки!!
- #        assert all(map(lambda x: isinstance(x, Term), left_tumor)) and all(
- #            map(lambda x: isinstance(x, Term), right_tumor)) \
- # \
- #                left_string = ''.join(map(str, left_tumor))
- #        right_string = ''.join(map(str, right_tumor))
- #
- #        # ну а тут перебором ищем линейное разделение
- #        for i in range(0, len(left_string)):
- #            for j in range(len(mid_string)):
- #                if left_string[len(left_string) - i:] + mid_string[:j] not in mid_string + right_string:
- #                    # print('suitable for task 2: IRREGULAR')
- #                    raise Decision()
- #
- #        for i in range(0, len(right_string)):
- #            for j in range(len(mid_string)):
- #                if mid_string[len(mid_string) - j:] + right_string[:i] not in left_string + mid_string:
- #                    # print('suitable for task 2: IRREGULAR')
- #                    raise Decision()
- #
- #        return mid_string
-
-    # def transit_to_next_node(self, rule):
-    #     # по правилу мы должны куда-то переместиться
-    #     # убедимся, что справа максимум один нетерминал
-    #     # вернем то, что нарастетслева и справа при переходе + минимум того, что раскроется в середине
-    #     # print('TRANSITTING', rule)
-    #     assert (len(list(filter(lambda x: isinstance(x, Nterm), rule.rights)))) <= 1
-    #     rights = rule.rights
-    #     i = 0
-    #     # попробуем найти этот нетерминал
-    #     while i < len(rights):
-    #         if isinstance(rights[i], Nterm):
-    #             # нашли этот нетерминал, значит прогуляемся по нему
-    #             mid_string = self.check_linear_split(rights[i])
-    #             return ''.join(map(str, rights[:i])) + mid_string + ''.join(map(str, rights[i + 1:]))
-    #         i += 1
-    #     else:
-    #         # если это конечный узел, возвращаем его термы
-    #         return ''.join(map(str, rights))
