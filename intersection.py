@@ -108,6 +108,8 @@ def find_result(intersection, start):
 
 
 def rule_legit(objs: list[ScalObj], terminal_only_nonterms, term_rules, edges_possible):
+    if objs[0] == objs[1] or objs[0] == objs[2] or objs[1] == objs[2]:
+        return False
     for obj in objs:
         for edge in edges_possible:
             if obj.p == edge.e_from and obj.q == edge.e_to:
