@@ -1,7 +1,6 @@
 from cfg.cfg import CFG
 from cfg.rule import Rule, Term, Nterm, Epsilon
 from dfa.dfa import DFA, Edge
-from pprint import pprint
 
 
 class ScalObj:
@@ -56,7 +55,7 @@ def find_intersection(cfg: CFG, dfa: DFA):
             rules.add(rule)
     # вроде породили
 
-    terminal_only_nonterms = set()
+    terminal_only_nonterms: set[Nterm] = set()
     for nont in first_set_nont:
         for r in rules:
             if r.left == nont:
@@ -84,11 +83,11 @@ def find_intersection(cfg: CFG, dfa: DFA):
     start = ScalObj(dfa.start_state, Nterm("[S]"), dfa.final_state)
     result = find_result(intersection, start)
 
-    result = tam_bit_ne_result_vot_result(result)
+    result = tam_bil_ne_result_vot_result(result)
     return result
 
 
-def find_result(intersection, start):
+def find_result(intersection: set[IntersectionRule], start: ScalObj):
     final_scals = {start}
     final_intersection = set()
     flag = True  # мы добавляли правило на прошлой итерации?
@@ -109,7 +108,10 @@ def find_result(intersection, start):
     return final_intersection
 
 
-def rule_legit(objs: list[ScalObj], terminal_only_nonterms, term_rules, edges_possible):
+def rule_legit(objs: list[ScalObj],
+               terminal_only_nonterms: set[Nterm],
+               term_rules: set[IntersectionRule],
+               edges_possible: set[Edge]):
     if objs[0] == objs[1] or objs[0] == objs[2]:
         for rule in term_rules:
             if objs[0].p == rule.left.p and objs[0].Nont == rule.left.Nont:
@@ -129,52 +131,44 @@ def rule_legit(objs: list[ScalObj], terminal_only_nonterms, term_rules, edges_po
                 break
         else:
             return False
-    # if f:
-    #     print(objs, terminal_only_nonterms)
-    # print(objs)
     return True
 
 
-def tam_bit_ne_result_vot_result(result: set[IntersectionRule]):
+def tam_bil_ne_result_vot_result(result: set[IntersectionRule]):
     start = ScalObj("[S]", Nterm("[S]"), "[F0]")
     to_check = [start]
-    checked_rules = []
-    checked_states = {}
+    checked_rules: set[IntersectionRule] = set()
     while to_check:
         next_obj = to_check.pop()
-        # checked_states.append(next_obj) ### ???
         rules = find_rules(next_obj, result)
         for rule in rules:
             if rule in checked_rules:
                 continue
             if check_rule(rule, result):
-                checked_rules.append(rule)
+                checked_rules.add(rule)
                 if len(rule.right) == 2:
-                    # if rule.right[1] not in checked_states
                     to_check.append(rule.right[0])
                     to_check.append(rule.right[1])
-                ...
             else:
                 result.remove(rule)
                 start = ScalObj("[S]", Nterm("[S]"), "[F0]")
                 to_check = [start]
-                checked_rules = []
-                ... # DELETE RULE
-        # else:
-            # break
+                checked_rules = set()
     return checked_rules
 
-def check_rule(rule: IntersectionRule, rules):
-    ### проверить, что в правой части терминал
+
+def check_rule(rule: IntersectionRule, rules: set[IntersectionRule]):
+    # проверить, что в правой части терминал
     if len(rule.right) == 1:
         return True
-    ### или оба нетерминала имеют какое-то правило
+    # или оба нетерминала имеют какое-то правило
     for n in rule.right:
         if not find_rules(n, rules):
             return False
     return True
 
-def find_rules(obj, rules):
+
+def find_rules(obj: ScalObj, rules: set[IntersectionRule]):
     result = []
     for rule in rules:
         if rule.left == obj:
