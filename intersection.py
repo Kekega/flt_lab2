@@ -83,6 +83,8 @@ def find_intersection(cfg: CFG, dfa: DFA):
     # тут почистим
     start = ScalObj(dfa.start_state, Nterm("[S]"), dfa.final_state)
     result = find_result(intersection, start)
+
+    result = tam_bit_ne_result_vot_result(result)
     return result
 
 
@@ -127,4 +129,54 @@ def rule_legit(objs: list[ScalObj], terminal_only_nonterms, term_rules, edges_po
                 break
         else:
             return False
+    # if f:
+    #     print(objs, terminal_only_nonterms)
+    # print(objs)
     return True
+
+
+def tam_bit_ne_result_vot_result(result: set[IntersectionRule]):
+    start = ScalObj("[S]", Nterm("[S]"), "[F0]")
+    to_check = [start]
+    checked_rules = []
+    checked_states = {}
+    while to_check:
+        next_obj = to_check.pop()
+        # checked_states.append(next_obj) ### ???
+        rules = find_rules(next_obj, result)
+        for rule in rules:
+            if rule in checked_rules:
+                continue
+            if check_rule(rule, result):
+                checked_rules.append(rule)
+                if len(rule.right) == 2:
+                    # if rule.right[1] not in checked_states
+                    to_check.append(rule.right[0])
+                    to_check.append(rule.right[1])
+                ...
+            else:
+                result.remove(rule)
+                start = ScalObj("[S]", Nterm("[S]"), "[F0]")
+                to_check = [start]
+                checked_rules = []
+                ... # DELETE RULE
+        # else:
+            # break
+    return checked_rules
+
+def check_rule(rule: IntersectionRule, rules):
+    ### проверить, что в правой части терминал
+    if len(rule.right) == 1:
+        return True
+    ### или оба нетерминала имеют какое-то правило
+    for n in rule.right:
+        if not find_rules(n, rules):
+            return False
+    return True
+
+def find_rules(obj, rules):
+    result = []
+    for rule in rules:
+        if rule.left == obj:
+            result.append(rule)
+    return result
