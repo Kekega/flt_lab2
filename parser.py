@@ -8,6 +8,8 @@ def read_input(input_filename):
     with open(input_filename, "r", encoding="utf-8") as inp:
         rules = inp.readlines()
 
+    rules = list(filter(lambda item: item.strip(), rules))
+
     it = rules_iterator(rules)
 
     s = ""
