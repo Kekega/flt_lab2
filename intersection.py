@@ -74,7 +74,7 @@ def find_intersection(cfg: CFG, dfa: DFA):
                     s1 = ScalObj(p, rule.left, q)
                     s2 = ScalObj(p, rule.rights[0], q1)
                     s3 = ScalObj(q1, rule.rights[1], q)
-                    if not rule_legit([s1, s2, s3], terminal_only_nonterms, term_rules):
+                    if not rule_legit([s1, s2, s3], terminal_only_nonterms, term_rules, dfa.edges):
                         continue
 
                     int_rule = IntersectionRule(s1, [s2, s3])
@@ -107,15 +107,18 @@ def find_result(intersection, start):
     return final_intersection
 
 
-def rule_legit(objs: list[ScalObj], terminal_only_nonterms, term_rules):
+def rule_legit(objs: list[ScalObj], terminal_only_nonterms, term_rules, edges_possible):
     for obj in objs:
+        for edge in edges_possible:
+            if obj.p == edge.e_from and obj.q == edge.e_to:
+                break
+        else:
+            return False
         if obj.Nont not in terminal_only_nonterms:
             continue
-        f = True
         for rule in term_rules:
             if obj == rule.left:
-                f = False
                 break
-        if f:
+        else:
             return False
     return True
