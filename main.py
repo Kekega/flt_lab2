@@ -1,6 +1,7 @@
 from parser import read_input
 from intersection import find_intersection
 import argparse
+import sys
 
 
 def _create_pipeline_parser() -> argparse.ArgumentParser:
@@ -19,11 +20,11 @@ if __name__ == "__main__":
 
     c, d = read_input(args.input_path)
 
-    if args.cfg:
-        print("CFG:\n", c, sep='', end='\n\n')
+    with open('output.txt', 'w') as sys.stdout:
+        if args.cfg:
+            print("CFG:\n", c, sep='', end='\n\n')
 
-    if args.dfa:
-        print("DFA:\n", d, sep='', end='\n\n')
+        if args.dfa:
+            print("DFA:\n", d, sep='', end='\n\n')
 
-
-    print("INTERSECTION:", *find_intersection(c, d), sep='\n')
+        print("INTERSECTION:", *find_intersection(c, d), sep='\n')
