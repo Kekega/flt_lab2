@@ -17,9 +17,10 @@ class DFA:
     start_state = "[S]"
     final_state = "[F0]"
 
-    def __init__(self, states: set[str], edges: set[Edge]):
+    def __init__(self, states: set[str], edges: set[Edge], final_state="[F0]"):
         self.states = states
         self.edges = edges
+        self.final_state = final_state
 
     def add_state(self, state: str):
         self.states.add(state)

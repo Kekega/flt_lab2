@@ -21,46 +21,79 @@ def read_input(input_filename):
 
         se = r.split("|")
 
-        for t in se:
-            s += nonterm + "->" + t.strip() + "\n"
+        for r in se:
+            s += nonterm + "->" + r.strip() + "\n"
 
     a = CFG_Parser(s)
-    c = a.parse_rules().toCNF()
+    cfff = a.parse_rules().toCNF()
     # получили cfg в нормальной форме Хомского
 
-    states = {"[F0]"}
-    edges = set()
-
+    # считаем терминальные состояния
+    ttt = []
     for rule in it:
         if rule == 0:
             break
         nonterm, r = rule.split("->")
-        st_from = nonterm.strip()
-        states.add(st_from)
 
         se = r.split("|")
 
-        for t in se:
-            t = t.strip()
-            sym = t[0]
-            t = t[1:]
-            st_to = t if t else "[F0]"
+        for k in se:
+            ttt.append(f"{nonterm} -> {k.strip()}")
+
+    c = 0
+    for rule in ttt:
+        nonterm, r = rule.split("->")
+        if len(r.strip()) == 1:
+            c += 1
+            fin = nonterm.strip()
+
+    # если их нет
+    if c == 0:
+        raise ValueError("неверный формат праволинейной грамматики")
+    # если терминальное состояние единственное
+    if c == 1:
+        final_state = f"{fin}"
+        states = {f"{fin}"}
+        edges = set()
+        for rule in ttt:
+            nonterm, r = rule.split("->")
+            st_from = nonterm.strip()
+            states.add(st_from)
+
+            r = r.strip()
+            sym = r[0]
+            r = r[1:]
+            st_to = r if r else f"{fin}"
             states.add(st_to)
             e = Edge(st_from, st_to, sym)
             edges.add(e)
+    # если их несколько добавляем новое F0, которое будет единственным финальным в итоговом DFA
+    else:
+        final_state = "[F0]"
+        states = {"[F0]"}
+        edges = set()
 
-    dfa = DFA(states, edges)
+        for rule in it:
+            if rule == 0:
+                break
+            nonterm, r = rule.split("->")
+            st_from = nonterm.strip()
+            states.add(st_from)
 
-    return c, dfa
+            se = r.split("|")
 
+            for r in se:
+                r = r.strip()
+                sym = r[0]
+                r = r[1:]
+                st_to = r if r else "[F0]"
+                states.add(st_to)
+                e = Edge(st_from, st_to, sym)
+                edges.add(e)
 
+    dfa = DFA(states, edges, final_state)
 
-def parse_cf_rule():
-    ...
-
-
-def parse_right_rule():
-    ...
+    return cfff, dfa
 
 
 def rules_iterator(rules: list[str]):

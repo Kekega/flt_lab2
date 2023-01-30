@@ -83,7 +83,7 @@ def find_intersection(cfg: CFG, dfa: DFA):
     start = ScalObj(dfa.start_state, Nterm("[S]"), dfa.final_state)
     result = find_result(intersection, start)
 
-    result = tam_bil_ne_result_vot_result(result)
+    result = tam_bil_ne_result_vot_result(result, dfa.final_state)
     return result
 
 
@@ -134,8 +134,8 @@ def rule_legit(objs: list[ScalObj],
     return True
 
 
-def tam_bil_ne_result_vot_result(result: set[IntersectionRule]):
-    start = ScalObj("[S]", Nterm("[S]"), "[F0]")
+def tam_bil_ne_result_vot_result(result: set[IntersectionRule], final_state_dfa: str):
+    start = ScalObj("[S]", Nterm("[S]"), final_state_dfa)
     to_check = [start]
     checked_rules: set[IntersectionRule] = set()
     while to_check:
@@ -151,7 +151,7 @@ def tam_bil_ne_result_vot_result(result: set[IntersectionRule]):
                     to_check.append(rule.right[1])
             else:
                 result.remove(rule)
-                start = ScalObj("[S]", Nterm("[S]"), "[F0]")
+                start = ScalObj("[S]", Nterm("[S]"), final_state_dfa)
                 to_check = [start]
                 checked_rules = set()
     return checked_rules
