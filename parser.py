@@ -73,7 +73,7 @@ def read_input(input_filename):
         states = {"[F0]"}
         edges = set()
 
-        for rule in it:
+        for rule in ttt:
             if rule == 0:
                 break
             nonterm, r = rule.split("->")
