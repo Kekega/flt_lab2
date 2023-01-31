@@ -40,23 +40,29 @@ def read_input(input_filename):
         for k in se:
             ttt.append(f"{nonterm} -> {k.strip()}")
 
-    c = 0
+    ac, c = 0, 0
+    fin = "[F0]"
     for rule in ttt:
         nonterm, r = rule.split("->")
         if len(r.strip()) == 1:
-            c += 1
-            fin = nonterm.strip()
+            if r.strip() == "0":
+                ac += 1
+                fin = nonterm.strip()
+            else:
+                c += 1
 
     # если их нет
-    if c == 0:
-        raise ValueError("неверный формат праволинейной грамматики")
+    if ac > 1 or (ac == 1 and c > 1):
+        raise ValueError("проблемы с терминальными правилами праволинейной грамматики")
     # если терминальное состояние единственное
-    if c == 1:
+    else:
         final_state = f"{fin}"
         states = {f"{fin}"}
         edges = set()
         for rule in ttt:
             nonterm, r = rule.split("->")
+            if r.strip() == "0":
+                continue
             st_from = nonterm.strip()
             states.add(st_from)
 
@@ -67,29 +73,6 @@ def read_input(input_filename):
             states.add(st_to)
             e = Edge(st_from, st_to, sym)
             edges.add(e)
-    # если их несколько добавляем новое F0, которое будет единственным финальным в итоговом DFA
-    else:
-        final_state = "[F0]"
-        states = {"[F0]"}
-        edges = set()
-
-        for rule in ttt:
-            if rule == 0:
-                break
-            nonterm, r = rule.split("->")
-            st_from = nonterm.strip()
-            states.add(st_from)
-
-            se = r.split("|")
-
-            for r in se:
-                r = r.strip()
-                sym = r[0]
-                r = r[1:]
-                st_to = r if r else "[F0]"
-                states.add(st_to)
-                e = Edge(st_from, st_to, sym)
-                edges.add(e)
 
     dfa = DFA(states, edges, final_state)
 

@@ -73,9 +73,11 @@ def find_intersection(cfg: CFG, dfa: DFA):
                     s1 = ScalObj(p, rule.left, q)
                     s2 = ScalObj(p, rule.rights[0], q1)
                     s3 = ScalObj(q1, rule.rights[1], q)
-                    if not rule_legit([s1, s2, s3], terminal_only_nonterms, term_rules, dfa.edges):
+                    f = False
+                    if p == "[S]" and q1 == "[R]" and q == "[F0]":
+                        f = True
+                    if not rule_legit([s1, s2, s3], terminal_only_nonterms, term_rules, dfa.edges, f):
                         continue
-
                     int_rule = IntersectionRule(s1, [s2, s3])
                     intersection.add(int_rule)
 
@@ -111,14 +113,16 @@ def find_result(intersection: set[IntersectionRule], start: ScalObj):
 def rule_legit(objs: list[ScalObj],
                terminal_only_nonterms: set[Nterm],
                term_rules: set[IntersectionRule],
-               edges_possible: set[Edge]):
+               edges_possible: set[Edge],
+               f):
     if objs[0] == objs[1] or objs[0] == objs[2]:
         for rule in term_rules:
             if objs[0].p == rule.left.p and objs[0].Nont == rule.left.Nont:
+
                 break
         else:
             return False
-    for obj in objs:
+    for obj in objs[1:]:
         for edge in edges_possible:
             if obj.p == edge.e_from and obj.q == edge.e_to:
                 break
@@ -135,6 +139,7 @@ def rule_legit(objs: list[ScalObj],
 
 
 def tam_bil_ne_result_vot_result(result: set[IntersectionRule], final_state_dfa: str):
+    # print(result)
     start = ScalObj("[S]", Nterm("[S]"), final_state_dfa)
     to_check = [start]
     checked_rules: set[IntersectionRule] = set()
